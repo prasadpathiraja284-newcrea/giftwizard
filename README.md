@@ -1,0 +1,985 @@
+[index.html.html](https://github.com/user-attachments/files/33450945/index.html.html)
+<!DOCTYPE html>
+<html lang="si">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GiftWizard Hybrid Ecosystem (Web 2.5)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Sinhala:wght@400;600;700&display=swap');
+    body {
+      font-family: 'Inter', 'Noto Sans Sinhala', sans-serif;
+      background-color: #0b0f19;
+      color: #f1f5f9;
+    }
+    .glass {
+      background: rgba(30, 41, 59, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .gold-grad {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+    .purple-grad {
+      background: linear-gradient(135deg, #7c3aed, #db2777);
+    }
+    .map-grid {
+      background-color: #0f172a;
+      background-image: 
+        linear-gradient(rgba(56, 189, 248, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(56, 189, 248, 0.08) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- TOP NOTIFICATION TOAST -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 hidden transform transition-all duration-300 bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-emerald-400">
+    <i class="fa-solid fa-bolt text-yellow-300 text-lg"></i>
+    <span id="toast-msg" class="text-sm font-semibold">ක්‍රියාවලිය සාර්ථකයි!</span>
+  </div>
+
+  <!-- GLOBAL HEADER / HYBRID SWITCHER -->
+  <header class="sticky top-0 z-40 glass border-b border-slate-800 px-4 lg:px-8 py-3">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl purple-grad flex items-center justify-center shadow-lg shadow-purple-500/30">
+          <i class="fa-solid fa-wand-magic-sparkles text-white text-lg"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl font-extrabold tracking-tight text-white">GiftWizard</h1>
+            <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40">Hybrid Web 2.5</span>
+          </div>
+          <p class="text-xs text-slate-400">Wholesale • Resell • Affiliate • Smart Escrow</p>
+        </div>
+      </div>
+
+      <!-- Wizard Coin Wallet Status -->
+      <div class="flex items-center gap-3 bg-slate-900/90 border border-amber-500/30 px-4 py-2 rounded-xl">
+        <div class="w-8 h-8 rounded-full gold-grad flex items-center justify-center text-slate-950 font-black text-sm">W</div>
+        <div>
+          <p class="text-[10px] text-slate-400 uppercase font-semibold">Wizard Coin Wallet (USDT Pegged)</p>
+          <p class="text-sm font-bold text-amber-400"><span id="wallet-balance">2,450.00</span> WIZ <span class="text-xs text-emerald-400 font-normal">(≈ $2,450)</span></p>
+        </div>
+        <button onclick="topUpWallet()" class="ml-2 text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-2.5 py-1.5 rounded-lg transition">
+          + Top Up
+        </button>
+      </div>
+
+      <!-- MAIN MODE SWITCHER (CUSTOMER VS SELLER DASHBOARD) -->
+      <div class="flex items-center bg-slate-900 p-1 rounded-xl border border-slate-700">
+        <button id="btn-mode-customer" onclick="switchMode('customer')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold bg-purple-600 text-white shadow transition">
+          <i class="fa-solid fa-bag-shopping"></i>
+          <span>Customer View</span>
+        </button>
+        <button id="btn-mode-seller" onclick="switchMode('seller')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition">
+          <i class="fa-solid fa-store"></i>
+          <span>Shop Dashboard</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ========================================================= -->
+  <!-- 1. CUSTOMER SIDE VIEW (SOCIAL WALL + MAP + RATINGS + ESCROW) -->
+  <!-- ========================================================= -->
+  <main id="view-customer" class="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-6">
+    
+    <!-- Customer Navigation Tabs -->
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-6 border-b border-slate-800 pb-4">
+      <div class="flex flex-wrap gap-2">
+        <button onclick="switchCustomerTab('wall')" id="ctab-wall" class="px-4 py-2.5 rounded-xl text-sm font-bold bg-slate-800 text-purple-400 border border-purple-500/40 flex items-center gap-2">
+          <i class="fa-solid fa-fire text-orange-500"></i> Trending Social Wall
+        </button>
+        <button onclick="switchCustomerTab('map')" id="ctab-map" class="px-4 py-2.5 rounded-xl text-sm font-bold bg-slate-900 text-slate-400 hover:text-white border border-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-map-location-dot text-sky-400"></i> ළඟම Shops Map එක
+        </button>
+        <button onclick="switchCustomerTab('shops')" id="ctab-shops" class="px-4 py-2.5 rounded-xl text-sm font-bold bg-slate-900 text-slate-400 hover:text-white border border-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-ranking-star text-amber-400"></i> Shop Ratings (Blockchain)
+        </button>
+        <button onclick="switchCustomerTab('escrow')" id="ctab-escrow" class="px-4 py-2.5 rounded-xl text-sm font-bold bg-slate-900 text-slate-400 hover:text-white border border-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-shield-halved text-emerald-400"></i> Smart Escrow Orders
+          <span id="escrow-badge" class="bg-emerald-500 text-slate-950 text-xs px-1.5 py-0.2 rounded-full font-extrabold">1</span>
+        </button>
+      </div>
+
+      <!-- Search Input -->
+      <div class="relative w-full sm:w-72">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-sm"></i>
+        <input id="customer-search" oninput="filterWall()" type="text" placeholder="තෑගි, කේක්, සෙරෙප්පු හොයන්න..." class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-purple-500" />
+      </div>
+    </div>
+
+    <!-- TAB 1: VIRAL SOCIAL WALL -->
+    <section id="csec-wall" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Left/Center: Feed Posts -->
+      <div class="lg:col-span-2 space-y-5">
+        <div class="flex items-center justify-between bg-gradient-to-r from-purple-900/40 to-pink-900/30 border border-purple-500/30 rounded-2xl p-4">
+          <div>
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-bolt text-amber-400"></i> වැඩිපුරම බලපු සහ React කරපු Trending Wall එක
+            </h2>
+            <p class="text-xs text-slate-300 mt-0.5">Share කරන හැම භාණ්ඩයකින්ම 0.5% ක Affiliate කොමිෂන් එකක් ඔයාගේ Wizard Wallet එකට!</p>
+          </div>
+          <span class="text-xs font-semibold bg-purple-500/20 text-purple-300 px-3 py-1 rounded-lg border border-purple-400/30">Live Algorithm</span>
+        </div>
+
+        <!-- Dynamic Feed Container -->
+        <div id="wall-feed-container" class="space-y-5"></div>
+      </div>
+
+      <!-- Right Sidebar: Trending Stats & AI Gift Finder -->
+      <div class="space-y-5">
+        <!-- Quick AI Gift Wizard Box -->
+        <div class="glass rounded-2xl p-5 border border-purple-500/30">
+          <h3 class="text-base font-bold text-white flex items-center gap-2 mb-3">
+            <i class="fa-solid fa-wand-sparkles text-purple-400"></i> AI Gift Finder
+          </h3>
+          <p class="text-xs text-slate-400 mb-3">තෑග්ග දෙන්නේ කාටද කියලා තෝරන්න, ළඟම ඉන්න හොඳම Seller ගෙන් තත්පරෙන් හොයලා දෙන්නම්.</p>
+          <div class="space-y-2.5 text-xs">
+            <select id="ai-recipient" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white">
+              <option value="Birthday Cake">🎂 Birthday Custom Cake (ළඟම කේක් ෂොප්)</option>
+              <option value="Red Sandals">👠 Handmade Red Sandals (රතු සෙරෙප්පු)</option>
+              <option value="Luxury Gift Box">🎁 Luxury Perfume & Choc Box</option>
+            </select>
+            <button onclick="runAiFinder()" class="w-full purple-grad hover:opacity-95 text-white font-bold py-2.5 rounded-xl shadow-lg transition">
+              AI එකෙන් ගැලපෙනම තෑග්ග හොයන්න
+            </button>
+          </div>
+        </div>
+
+        <!-- Top Ranked Shops Mini Leaderboard -->
+        <div class="glass rounded-2xl p-5">
+          <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-3 flex items-center justify-between">
+            <span>👑 Top Rated Shops</span>
+            <span class="text-[10px] text-emerald-400">On-Chain Verified</span>
+          </h3>
+          <div class="space-y-3 text-xs">
+            <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+              <div>
+                <p class="font-bold text-white flex items-center gap-1.5">SweetCrumb Cakes <i class="fa-solid fa-circle-check text-sky-400"></i></p>
+                <p class="text-slate-400">Colombo 05 • 0.8 km away</p>
+              </div>
+              <span class="font-bold text-amber-400">⭐ 4.98</span>
+            </div>
+            <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+              <div>
+                <p class="font-bold text-white flex items-center gap-1.5">Ceylon Craft Footwear <i class="fa-solid fa-circle-check text-sky-400"></i></p>
+                <p class="text-slate-400">Nugegoda • 2.1 km away</p>
+              </div>
+              <span class="font-bold text-amber-400">⭐ 4.92</span>
+            </div>
+            <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+              <div>
+                <p class="font-bold text-white flex items-center gap-1.5">Glow & Gift Studio <i class="fa-solid fa-circle-check text-sky-400"></i></p>
+                <p class="text-slate-400">Maharagama • 3.4 km away</p>
+              </div>
+              <span class="font-bold text-amber-400">⭐ 4.89</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: LOCATION-BASED SEARCH MAP -->
+    <section id="csec-map" class="hidden space-y-5">
+      <div class="glass rounded-2xl p-5 border border-sky-500/30">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-location-crosshairs text-sky-400"></i> ඔයාට ළඟම ඉන්න Seller ගෙන් හදාගන්න (Hyper-Local GPS Map)
+            </h2>
+            <p class="text-xs text-slate-400">දුර ප්‍රමාණය අනුව ළඟම ඉන්න Verified Shops තෝරා කෙළින්ම ඕඩර් කරන්න.</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <label class="text-xs text-slate-300 font-semibold">Search Radius: <span id="radius-val" class="text-sky-400 font-bold">5 km</span></label>
+            <input type="range" min="1" max="15" value="5" oninput="updateMapRadius(this.value)" class="accent-sky-400 cursor-pointer" />
+          </div>
+        </div>
+
+        <!-- Simulated Interactive Map Canvas -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2 map-grid rounded-2xl h-96 relative overflow-hidden border border-slate-700 flex items-center justify-center">
+            <!-- Radar Pulse -->
+            <div class="w-64 h-64 rounded-full border border-sky-400/30 bg-sky-500/5 animate-pulse flex items-center justify-center">
+              <div class="w-32 h-32 rounded-full border border-sky-400/40 bg-sky-500/10"></div>
+            </div>
+
+            <!-- User Center Pin -->
+            <div class="absolute z-20 flex flex-col items-center">
+              <span class="px-2 py-0.5 rounded bg-sky-500 text-slate-950 font-bold text-[10px] mb-1 shadow">ඔයා ඉන්න තැන (GPS)</span>
+              <div class="w-4 h-4 rounded-full bg-sky-400 ring-4 ring-sky-400/30"></div>
+            </div>
+
+            <!-- Shop Pin 1 -->
+            <button onclick="selectMapShop(0)" class="absolute top-16 left-1/4 z-20 group flex flex-col items-center transform hover:scale-110 transition">
+              <div class="bg-slate-900/95 border border-amber-400 px-2.5 py-1 rounded-lg shadow-lg text-left">
+                <p class="text-xs font-bold text-white">🎂 SweetCrumb Cakes</p>
+                <p class="text-[10px] text-amber-400">0.8 km • ⭐ 4.98</p>
+              </div>
+              <i class="fa-solid fa-location-dot text-amber-400 text-2xl -mt-1"></i>
+            </button>
+
+            <!-- Shop Pin 2 -->
+            <button onclick="selectMapShop(1)" class="absolute bottom-20 right-1/4 z-20 group flex flex-col items-center transform hover:scale-110 transition">
+              <div class="bg-slate-900/95 border border-pink-400 px-2.5 py-1 rounded-lg shadow-lg text-left">
+                <p class="text-xs font-bold text-white">👠 Ceylon Craft Footwear</p>
+                <p class="text-[10px] text-pink-400">2.1 km • ⭐ 4.92</p>
+              </div>
+              <i class="fa-solid fa-location-dot text-pink-500 text-2xl -mt-1"></i>
+            </button>
+
+            <!-- Shop Pin 3 -->
+            <button onclick="selectMapShop(2)" class="absolute top-24 right-16 z-20 group flex flex-col items-center transform hover:scale-110 transition">
+              <div class="bg-slate-900/95 border border-purple-400 px-2.5 py-1 rounded-lg shadow-lg text-left">
+                <p class="text-xs font-bold text-white">🎁 Glow & Gift Studio</p>
+                <p class="text-[10px] text-purple-400">3.4 km • ⭐ 4.89</p>
+              </div>
+              <i class="fa-solid fa-location-dot text-purple-400 text-2xl -mt-1"></i>
+            </button>
+          </div>
+
+          <!-- Selected Map Shop Details -->
+          <div id="map-shop-detail" class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+            <div>
+              <span class="text-[10px] uppercase font-bold px-2.5 py-1 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30">Selected Nearby Seller</span>
+              <h3 id="map-shop-name" class="text-xl font-bold text-white mt-3">🎂 SweetCrumb Cakes</h3>
+              <p id="map-shop-dist" class="text-xs text-slate-400 mt-1">📍 Colombo 05 (ඔබේ සිට 0.8 km දුරින්)</p>
+              <div class="mt-4 p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+                <div class="flex justify-between">
+                  <span class="text-slate-400">Blockchain Soulbound Rating:</span>
+                  <span id="map-shop-rating" class="font-bold text-amber-400">⭐ 4.98 (312 Reviews)</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-400">Badge:</span>
+                  <span class="text-emerald-400 font-semibold">🎓 Learn-to-Earn Verified</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-400">Payment Security:</span>
+                  <span class="text-purple-300 font-semibold">100% Smart Escrow</span>
+                </div>
+              </div>
+            </div>
+            <button onclick="orderFromMapShop()" class="w-full mt-5 gold-grad text-slate-950 font-extrabold py-3 rounded-xl shadow-lg hover:opacity-95 transition">
+              මේ ෂොප් එකෙන් දැන්ම ඕඩර් කරන්න (35 WIZ)
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: SHOP-WISE BLOCKCHAIN RATINGS -->
+    <section id="csec-shops" class="hidden space-y-4">
+      <div class="glass rounded-2xl p-5">
+        <h2 class="text-lg font-bold text-white mb-1">⛓️ Shop-Wise Immutable Blockchain Ratings (Soulbound Tokens)</h2>
+        <p class="text-xs text-slate-400 mb-4">කිසිම කෙනෙකුට හොර රේටින්ග්ස් දැමීමට හෝ වෙනස් කිරීමට නොහැකි ලෙස Polygon/Solana මත සටහන් වූ ශ්‍රේණිගත කිරීම්.</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-3">
+            <div class="flex justify-between items-start">
+              <div>
+                <h3 class="font-bold text-white text-base">🎂 SweetCrumb Cakes</h3>
+                <p class="text-xs text-emerald-400">🎓 Learn-to-Earn Certified</p>
+              </div>
+              <span class="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded-lg font-bold text-xs">⭐ 4.98</span>
+            </div>
+            <p class="text-xs text-slate-400">Completed Escrow Orders: <strong class="text-white">312</strong></p>
+            <p class="text-[11px] font-mono text-slate-500">On-Chain Hash: 0x8F3C...91A2</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-3">
+            <div class="flex justify-between items-start">
+              <div>
+                <h3 class="font-bold text-white text-base">👠 Ceylon Craft Footwear</h3>
+                <p class="text-xs text-emerald-400">🎓 Verified Artisan Shop</p>
+              </div>
+              <span class="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded-lg font-bold text-xs">⭐ 4.92</span>
+            </div>
+            <p class="text-xs text-slate-400">Completed Escrow Orders: <strong class="text-white">208</strong></p>
+            <p class="text-[11px] font-mono text-slate-500">On-Chain Hash: 0x4D1E...77B9</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-3">
+            <div class="flex justify-between items-start">
+              <div>
+                <h3 class="font-bold text-white text-base">🎁 Glow & Gift Studio</h3>
+                <p class="text-xs text-emerald-400">👑 VIP Ranked Seller</p>
+              </div>
+              <span class="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded-lg font-bold text-xs">⭐ 4.89</span>
+            </div>
+            <p class="text-xs text-slate-400">Completed Escrow Orders: <strong class="text-white">164</strong></p>
+            <p class="text-[11px] font-mono text-slate-500">On-Chain Hash: 0x2A9B...43F0</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: SMART CONTRACT ESCROW ORDERS -->
+    <section id="csec-escrow" class="hidden space-y-4">
+      <div class="glass rounded-2xl p-6 border border-emerald-500/30">
+        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-lock text-emerald-400"></i> Smart Contract Escrow (100% විශ්වාසය තහවුරු කිරීම)
+        </h2>
+        <p class="text-xs text-slate-300 mt-1">
+          ඔබ ගෙවූ Wizard Coins කෙළින්ම Seller ට යන්නේ නැත. Courier මගින් භාණ්ඩය ඔබේ අතට ලැබුණු බව තහවුරු කළ තත්පරයේදීම පමණක් Smart Contract එක මගින් Wholesaler, Reseller, Affiliate (0.5%) සහ Seller අතර මුදල බෙදා හරියි.
+        </p>
+
+        <div id="escrow-list" class="mt-5 space-y-4"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================= -->
+  <!-- 2. SELLER / SHOP DASHBOARD VIEW (ALL ACTIVE BUTTONS)      -->
+  <!-- ========================================================= -->
+  <main id="view-seller" class="hidden flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-6">
+    
+    <!-- Seller Top Status Banner -->
+    <div class="glass rounded-2xl p-5 mb-6 border border-amber-500/30 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-pink-600 flex items-center justify-center text-2xl font-extrabold text-white shadow-lg">
+          🎂
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 class="text-xl font-extrabold text-white">SweetCrumb Cakes (Shop Dashboard)</h2>
+            <span id="seller-verified-badge" class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold">
+              ✓ Verified Seller
+            </span>
+            <span id="seller-vip-badge" class="hidden text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">
+              👑 VIP #1 Ranked
+            </span>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">Credit Score: <strong class="text-amber-400">⭐ 4.98 (Soulbound Blockchain Verified)</strong> • 0% Bank Commission</p>
+        </div>
+      </div>
+
+      <!-- Quick KPI Pills -->
+      <div class="flex flex-wrap gap-3">
+        <div class="bg-slate-900 px-4 py-2 rounded-xl border border-slate-800">
+          <p class="text-[10px] text-slate-400 uppercase">Shop Earnings</p>
+          <p class="text-base font-extrabold text-emerald-400"><span id="seller-earnings">1,840.00</span> WIZ</p>
+        </div>
+        <div class="bg-slate-900 px-4 py-2 rounded-xl border border-slate-800">
+          <p class="text-[10px] text-slate-400 uppercase">Affiliate (0.5%) Stream</p>
+          <p class="text-base font-extrabold text-purple-400"><span id="seller-affiliate">42.50</span> WIZ</p>
+        </div>
+        <div class="bg-slate-900 px-4 py-2 rounded-xl border border-slate-800">
+          <p class="text-[10px] text-slate-400 uppercase">Active Micro-Loan</p>
+          <p class="text-base font-extrabold text-sky-400"><span id="seller-loan">0.00</span> WIZ</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Seller Dashboard Active Navigation Buttons -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+      <button onclick="switchSellerTab('vip')" id="stab-vip" class="p-3.5 rounded-xl text-left border border-amber-500/50 bg-slate-800/90 transition">
+        <i class="fa-solid fa-crown text-amber-400 text-lg"></i>
+        <p class="text-xs font-bold text-white mt-1.5">1. VIP & Ad Flywheel</p>
+        <p class="text-[10px] text-slate-400">Wall එකේ උඩටම ගන්න</p>
+      </button>
+
+      <button onclick="switchSellerTab('loan')" id="stab-loan" class="p-3.5 rounded-xl text-left border border-slate-800 bg-slate-900 hover:bg-slate-800 transition">
+        <i class="fa-solid fa-hand-holding-dollar text-sky-400 text-lg"></i>
+        <p class="text-xs font-bold text-white mt-1.5">2. Micro-Lending</p>
+        <p class="text-[10px] text-slate-400">ක්ෂණික Smart ණය</p>
+      </button>
+
+      <button onclick="switchSellerTab('learn')" id="stab-learn" class="p-3.5 rounded-xl text-left border border-slate-800 bg-slate-900 hover:bg-slate-800 transition">
+        <i class="fa-solid fa-graduation-cap text-emerald-400 text-lg"></i>
+        <p class="text-xs font-bold text-white mt-1.5">3. Learn-to-Earn</p>
+        <p class="text-[10px] text-slate-400">පාඨමාලා සහ Shop Badge</p>
+      </button>
+
+      <button onclick="switchSellerTab('oracle')" id="stab-oracle" class="p-3.5 rounded-xl text-left border border-slate-800 bg-slate-900 hover:bg-slate-800 transition">
+        <i class="fa-solid fa-brain text-purple-400 text-lg"></i>
+        <p class="text-xs font-bold text-white mt-1.5">4. AI Supply Oracle</p>
+        <p class="text-[10px] text-slate-400">Wholesale + 300% Trends</p>
+      </button>
+
+      <button onclick="switchSellerTab('affiliate')" id="stab-affiliate" class="p-3.5 rounded-xl text-left border border-slate-800 bg-slate-900 hover:bg-slate-800 transition">
+        <i class="fa-solid fa-diagram-project text-pink-400 text-lg"></i>
+        <p class="text-xs font-bold text-white mt-1.5">5. Resell & Affiliate</p>
+        <p class="text-[10px] text-slate-400">0.5% Lifetime Network</p>
+      </button>
+    </div>
+
+    <!-- SELLER PANEL 1: VIP RANKING & AD FLYWHEEL -->
+    <section id="ssec-vip" class="glass rounded-2xl p-6 space-y-5">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-crown text-amber-400"></i> VIP Ranking & Automated Flywheel (n8n + Smart Contract)
+          </h3>
+          <p class="text-xs text-slate-300 mt-1">
+            VIP හෝ Native Token Stake කළ සැණින් n8n හරහා Database එක ඉබේම අප්ඩේට් වී ඔබේ ෂොප් එකේ පෝස්ට් Customer Wall එකේ #1 තැනට පැමිණේ.
+          </p>
+        </div>
+        <button onclick="activateVipBoost()" class="gold-grad text-slate-950 font-extrabold px-5 py-3 rounded-xl shadow-lg hover:opacity-95 transition">
+          👑 Activate VIP Boost (50 WIZ)
+        </button>
+      </div>
+
+      <!-- Add New Product Post to Social Wall -->
+      <div class="p-5 rounded-xl bg-slate-900 border border-slate-800 space-y-3">
+        <h4 class="text-sm font-bold text-white">📸 Customer Social Wall එකට අලුත් භාණ්ඩයක් එක් කරන්න</h4>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+          <input id="new-post-title" type="text" placeholder="භාණ්ඩයේ නම (උදා: Chocolate Drip Cake)" class="bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white" />
+          <input id="new-post-price" type="number" placeholder="මිල (Wizard Coins - උදා: 40)" class="bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white" />
+          <button onclick="publishNewPost()" class="purple-grad text-white font-bold rounded-lg p-2.5 hover:opacity-95 transition">
+            + Publish to Customer Wall
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SELLER PANEL 2: MICRO-LENDING (BANK BYPASS) -->
+    <section id="ssec-loan" class="hidden glass rounded-2xl p-6 space-y-5">
+      <h3 class="text-lg font-bold text-white flex items-center gap-2">
+        <i class="fa-solid fa-hand-holding-dollar text-sky-400"></i> Instant Smart Contract Micro-Lending (බැංකු බයිපාස් කිරීම)
+      </h3>
+      <p class="text-xs text-slate-300">
+        Wholesaler ගෙන් අමුද්‍රව්‍ය ගැනීමට මුදල් නොමැති විට, ඔබේ 5-Star Ratings සහ Sales History එක "Credit Score" එක ලෙස ගෙන ක්ෂණිකව ණය ලබාදේ. ඊළඟ විකුණුම් ලාභයෙන් ඉබේම කැපී යයි.
+      </p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="p-5 rounded-xl bg-slate-900 border border-sky-500/30 space-y-2">
+          <p class="text-xs text-slate-400">Your On-Chain Credit Eligibility</p>
+          <p class="text-2xl font-extrabold text-white">500.00 WIZ <span class="text-xs text-emerald-400 font-normal">(Pre-Approved)</span></p>
+          <p class="text-xs text-slate-400">Repayment Rule: Auto-deduct 10% from each future Escrow sale.</p>
+          <button onclick="takeMicroLoan()" class="mt-3 w-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold py-2.5 rounded-xl transition">
+            ⚡ 500 WIZ ක්ෂණික ණය Wallet එකට ගන්න
+          </button>
+        </div>
+        <div class="p-5 rounded-xl bg-slate-900 border border-slate-800 space-y-2 text-xs text-slate-300">
+          <p class="font-bold text-white text-sm">Purchasing Power Lock-in:</p>
+          <p>• ලැබෙන ණය මුදල ප්ලැට්ෆෝම් එක ඇතුළේ සිටින Wholesalers ලාගෙන් අමුද්‍රව්‍ය ගැනීමට කෙළින්ම භාවිතා කළ හැක.</p>
+          <p>• Opportunity Cost = 0 නිසා සල්ලි එළියට ගැනීමෙන් සිදුවන පාඩුව වැළකේ.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SELLER PANEL 3: LEARN-TO-EARN PIPELINE -->
+    <section id="ssec-learn" class="hidden glass rounded-2xl p-6 space-y-5">
+      <h3 class="text-lg font-bold text-white flex items-center gap-2">
+        <i class="fa-solid fa-graduation-cap text-emerald-400"></i> Learn-to-Earn Pipeline (අධ්‍යාපනය සහ ආදායම ඒකාබද්ධ කිරීම)
+      </h3>
+      <p class="text-xs text-slate-300">
+        පාඨමාලාව අවසන් කළ සැණින් n8n Automation හරහා ස්වයංක්‍රීයව "Verified Seller Badge" එකක් සමඟ Shop එක Upgrade වේ.
+      </p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+        <div class="p-4 rounded-xl bg-slate-900 border border-emerald-500/40 space-y-3">
+          <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">Course #1</span>
+          <h4 class="text-base font-bold text-white">🎂 Commercial Cake & Gift Mastery</h4>
+          <p class="text-slate-400">පාඨමාලාව සමත් වූ සැණින් Cake Wholesalers ලා සමඟ සම්බන්ධ වේ.</p>
+          <button onclick="completeCourse('Master Cake Artisan Badge')" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-2 rounded-lg transition">
+            Complete & Claim Verified Badge
+          </button>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-3">
+          <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold">Course #2</span>
+          <h4 class="text-base font-bold text-white">📦 Zero-Capital Reselling Pro</h4>
+          <p class="text-slate-400">භාණ්ඩ තොග නොමැතිව Wholesaler බඩු Resell කරන ආකාරය.</p>
+          <button onclick="completeCourse('Certified Pro Reseller Badge')" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 rounded-lg transition">
+            Complete & Claim Reseller Badge
+          </button>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-3">
+          <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">Course #3</span>
+          <h4 class="text-base font-bold text-white">🎨 Custom Digital & Print Gifts</h4>
+          <p class="text-slate-400">AI හරහා කස්ටමයිස් කරපු තෑගි නිර්මාණය.</p>
+          <button onclick="completeCourse('AI Digital Creator Badge')" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2 rounded-lg transition">
+            Complete & Claim Creator Badge
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SELLER PANEL 4: AI SUPPLY CHAIN ORACLE & WHOLESALE -->
+    <section id="ssec-oracle" class="hidden glass rounded-2xl p-6 space-y-5">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-brain text-purple-400"></i> AI Supply Chain Oracle & Wholesale Hub
+          </h3>
+          <p class="text-xs text-slate-300">
+            Buyers ලා සර්ච් කරන සහ Chat කරන Keywords (Privacy ආරක්ෂා කරමින්) AI මගින් විශ්ලේෂණය කර ලබන මාසයේ ඉල්ලුම පුරෝකථනය කරයි.
+          </p>
+        </div>
+        <button onclick="buyWholesaleStock()" class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition">
+          📦 Order Wholesale Raw Materials (100 WIZ)
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+        <div class="p-4 rounded-xl bg-slate-900 border border-purple-500/40 space-y-2">
+          <span class="text-[10px] uppercase font-bold text-purple-300">🔥 AI Demand Spike Alert (+300%)</span>
+          <h4 class="text-sm font-bold text-white">බස්නාහිර පළාතේ "රතු පාට සෙරෙප්පු" සහ "Bento Cake Boxes" ඉල්ලුම 300% කින් ඉහළට!</h4>
+          <p class="text-slate-400">AI Oracle නිර්දේශය: ලබන මාසය සඳහා දැන්ම Wholesaler ගෙන් අමුද්‍රව්‍ය වෙන් කරවා ගන්න.</p>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+          <span class="text-[10px] uppercase font-bold text-emerald-300">🤝 Connected Wholesalers</span>
+          <h4 class="text-sm font-bold text-white">Lanka Packaging & Footwear Wholesale Hub</h4>
+          <p class="text-slate-400">Smart Contract හරහා භාණ්ඩය විකිණුනු සැණින් Wholesaler ගේ තොග මිල ස්වයංක්‍රීයව පියවේ.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SELLER PANEL 5: MULTI-TIER AFFILIATE & RESELL PROTOCOL -->
+    <section id="ssec-affiliate" class="hidden glass rounded-2xl p-6 space-y-5">
+      <h3 class="text-lg font-bold text-white flex items-center gap-2">
+        <i class="fa-solid fa-diagram-project text-pink-400"></i> Multi-Tier Affiliate Protocol (0.5% Lifetime Micro-Commission)
+      </h3>
+      <p class="text-xs text-slate-300">
+        ඔබ හඳුන්වා දෙන ඕනෑම අලුත් Seller කෙනෙක් ජීවිත කාලය පුරාම විකුණන සෑම භාණ්ඩයකින්ම 0.5% ක කොමිෂන් එකක් Smart Contract එක හරහා ඔබේ Wallet එකට ලැබේ.
+      </p>
+      <div class="flex flex-wrap items-center gap-3 bg-slate-900 p-4 rounded-xl border border-slate-800">
+        <input id="aff-link" readonly value="https://giftwizard.io/join?ref=GWIZ_SWEETCRUMB_0x8F" class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-300 font-mono" />
+        <button onclick="copyAffiliateLink()" class="bg-pink-600 hover:bg-pink-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition">
+          Copy Referral Link
+        </button>
+        <button onclick="simulateAffiliateSale()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition">
+          ⚡ Simulate Downline Sale (+0.5% WIZ)
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- JAVASCRIPT ENGINE FOR FULL INTERACTIVITY -->
+  <script>
+    let walletBalance = 2450.00;
+    let sellerEarnings = 1840.00;
+    let sellerAffiliate = 42.50;
+    let sellerLoan = 0.00;
+
+    const mapShops = [
+      { name: "🎂 SweetCrumb Cakes", dist: "📍 Colombo 05 (ඔබේ සිට 0.8 km දුරින්)", rating: "⭐ 4.98 (312 Reviews)", price: 35 },
+      { name: "👠 Ceylon Craft Footwear", dist: "📍 Nugegoda (ඔබේ සිට 2.1 km දුරින්)", rating: "⭐ 4.92 (208 Reviews)", price: 28 },
+      { name: "🎁 Glow & Gift Studio", dist: "📍 Maharagama (ඔබේ සිට 3.4 km දුරින්)", rating: "⭐ 4.89 (164 Reviews)", price: 45 }
+    ];
+    let selectedShopIndex = 0;
+
+    let wallPosts = [
+      {
+        id: 1,
+        shop: "SweetCrumb Cakes",
+        badge: "🎓 Learn-to-Earn Verified",
+        vip: true,
+        rating: 4.98,
+        distance: "0.8 km",
+        title: "Belgian Chocolate Drip Birthday Cake (Same-Day Local Delivery)",
+        category: "Birthday Cake",
+        price: 35,
+        views: "14.2K",
+        likes: 842,
+        shares: 319,
+        comments: [
+          { user: "Kasun P.", text: "පැය දෙකෙන් ගෙදරටම ආවා, සුපිරිම රසයි!" },
+          { user: "Nethmi S.", text: "Escrow නිසා බය නැතුව ඕඩර් කළා." }
+        ]
+      },
+      {
+        id: 2,
+        shop: "Ceylon Craft Footwear",
+        badge: "🎓 Verified Artisan",
+        vip: false,
+        rating: 4.92,
+        distance: "2.1 km",
+        title: "Handmade Red Velvet Party Sandals (රතු පාට සෙරෙප්පු - Trending)",
+        category: "Red Sandals",
+        price: 28,
+        views: "9.8K",
+        likes: 615,
+        shares: 204,
+        comments: [
+          { user: "Dilani M.", text: "ලබන මාසේ වෙඩින් එකට ගත්තා, කොලිටිය සුපිරි!" }
+        ]
+      },
+      {
+        id: 3,
+        shop: "Glow & Gift Studio",
+        badge: "👑 VIP Seller",
+        vip: true,
+        rating: 4.89,
+        distance: "3.4 km",
+        title: "Luxury Rose, Perfume & Ferrero Custom Gift Box",
+        category: "Luxury Gift Box",
+        price: 45,
+        views: "11.5K",
+        likes: 710,
+        shares: 290,
+        comments: []
+      }
+    ];
+
+    let escrowOrders = [
+      {
+        id: "ESC-9081",
+        item: "Belgian Chocolate Drip Cake",
+        shop: "SweetCrumb Cakes",
+        amount: 35,
+        status: "LOCKED_IN_ESCROW"
+      }
+    ];
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      document.getElementById('toast-msg').innerText = msg;
+      t.classList.remove('hidden');
+      setTimeout(() => t.classList.add('hidden'), 3200);
+    }
+
+    function updateBalances() {
+      document.getElementById('wallet-balance').innerText = walletBalance.toFixed(2);
+      document.getElementById('seller-earnings').innerText = sellerEarnings.toFixed(2);
+      document.getElementById('seller-affiliate').innerText = sellerAffiliate.toFixed(2);
+      document.getElementById('seller-loan').innerText = sellerLoan.toFixed(2);
+      document.getElementById('escrow-badge').innerText = escrowOrders.filter(o => o.status === "LOCKED_IN_ESCROW").length;
+    }
+
+    // SWITCH MAIN MODE (CUSTOMER VS SELLER)
+    function switchMode(mode) {
+      const cView = document.getElementById('view-customer');
+      const sView = document.getElementById('view-seller');
+      const bCust = document.getElementById('btn-mode-customer');
+      const bSell = document.getElementById('btn-mode-seller');
+
+      if (mode === 'customer') {
+        cView.classList.remove('hidden');
+        sView.classList.add('hidden');
+        bCust.className = "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold bg-purple-600 text-white shadow transition";
+        bSell.className = "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition";
+        showToast("Customer View එකට මාරු වුණා!");
+      } else {
+        sView.classList.remove('hidden');
+        cView.classList.add('hidden');
+        bSell.className = "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold bg-amber-500 text-slate-950 shadow transition";
+        bCust.className = "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition";
+        showToast("Shop / Seller Dashboard එකට මාරු වුණා!");
+      }
+    }
+
+    // SWITCH CUSTOMER TABS
+    function switchCustomerTab(tab) {
+      ['wall', 'map', 'shops', 'escrow'].forEach(t => {
+        document.getElementById('csec-' + t).classList.add('hidden');
+        document.getElementById('ctab-' + t).className = "px-4 py-2.5 rounded-xl text-sm font-bold bg-slate-900 text-slate-400 hover:text-white border border-slate-800 flex items-center gap-2";
+      });
+      document.getElementById('csec-' + tab).classList.remove('hidden');
+      document.getElementById('ctab-' + tab).className = "px-4 py-2.5 rounded-xl text-sm font-bold bg-slate-800 text-purple-400 border border-purple-500/40 flex items-center gap-2";
+    }
+
+    // SWITCH SELLER TABS
+    function switchSellerTab(tab) {
+      ['vip', 'loan', 'learn', 'oracle', 'affiliate'].forEach(t => {
+        document.getElementById('ssec-' + t).classList.add('hidden');
+        document.getElementById('stab-' + t).className = "p-3.5 rounded-xl text-left border border-slate-800 bg-slate-900 hover:bg-slate-800 transition";
+      });
+      document.getElementById('ssec-' + tab).classList.remove('hidden');
+      document.getElementById('stab-' + tab).className = "p-3.5 rounded-xl text-left border border-amber-500/50 bg-slate-800/90 transition";
+    }
+
+    // RENDER SOCIAL WALL
+    function renderWall(filterText = "") {
+      const container = document.getElementById('wall-feed-container');
+      container.innerHTML = "";
+
+      const sorted = [...wallPosts].sort((a, b) => (b.vip - a.vip) || (b.likes - a.likes));
+
+      sorted.forEach(post => {
+        if (filterText && !post.title.toLowerCase().includes(filterText.toLowerCase()) && !post.shop.toLowerCase().includes(filterText.toLowerCase())) {
+          return;
+        }
+
+        const commentsHtml = post.comments.map(c => `
+          <div class="text-xs bg-slate-950/80 px-3 py-1.5 rounded-lg border border-slate-800">
+            <strong class="text-purple-300">${c.user}:</strong> <span class="text-slate-300">${c.text}</span>
+          </div>
+        `).join('');
+
+        container.innerHTML += `
+          <div class="glass rounded-2xl p-5 border ${post.vip ? 'border-amber-500/40' : 'border-slate-800'} space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center font-bold text-lg">🏪</div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h4 class="font-bold text-white text-sm">${post.shop}</h4>
+                    <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-semibold">${post.badge}</span>
+                    ${post.vip ? '<span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full font-bold">👑 VIP Boosted</span>' : ''}
+                  </div>
+                  <p class="text-xs text-slate-400">📍 ${post.distance} away • <span class="text-amber-400 font-bold">⭐ ${post.rating} (On-Chain)</span></p>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="text-lg font-extrabold text-amber-400">${post.price} WIZ</span>
+                <p class="text-[10px] text-slate-400">👁️ ${post.views} views</p>
+              </div>
+            </div>
+
+            <p class="text-base font-bold text-slate-100">${post.title}</p>
+
+            <!-- Social Engagement Buttons -->
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800 text-xs">
+              <div class="flex items-center gap-2">
+                <button onclick="likePost(${post.id})" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-pink-500/20 text-pink-400 border border-slate-700 font-bold transition">
+                  ❤️ React (${post.likes})
+                </button>
+                <button onclick="sharePost(${post.id})" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-purple-500/20 text-purple-300 border border-slate-700 font-bold transition">
+                  🔗 Share & Earn 0.5% (${post.shares})
+                </button>
+              </div>
+              <button onclick="buyWithEscrow(${post.id})" class="gold-grad text-slate-950 font-extrabold px-4 py-2 rounded-xl shadow hover:opacity-95 transition">
+                🛡️ Buy with Smart Escrow (${post.price} WIZ)
+              </button>
+            </div>
+
+            <!-- Comments Box -->
+            <div class="space-y-2 pt-2">
+              ${commentsHtml}
+              <div class="flex gap-2">
+                <input id="comment-input-${post.id}" type="text" placeholder="කමෙන්ට් එකක් දාන්න..." class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white" />
+                <button onclick="addComment(${post.id})" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg">Post</button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function filterWall() {
+      const q = document.getElementById('customer-search').value;
+      renderWall(q);
+    }
+
+    function likePost(id) {
+      const p = wallPosts.find(x => x.id === id);
+      if (p) {
+        p.likes += 1;
+        renderWall();
+        showToast("❤️ React එක එකතු වුණා! පෝස්ට් එක Wall එකේ තවත් උඩට එනවා.");
+      }
+    }
+
+    function sharePost(id) {
+      const p = wallPosts.find(x => x.id === id);
+      if (p) {
+        p.shares += 1;
+        renderWall();
+        showToast("🔗 Affiliate Link එක Copy වුණා! මේකෙන් එන හැම Sale එකකින්ම 0.5% ක් ඔයාගේ Wallet එකට.");
+      }
+    }
+
+    function addComment(id) {
+      const input = document.getElementById('comment-input-' + id);
+      const val = input.value.trim();
+      if (!val) return;
+      const p = wallPosts.find(x => x.id === id);
+      if (p) {
+        p.comments.push({ user: "You", text: val });
+        renderWall();
+        showToast("💬 කමෙන්ට් එක එකතු වුණා! AI Supply Oracle එකටත් Keywords යාවත්කාලීන වුණා.");
+      }
+    }
+
+    function buyWithEscrow(id) {
+      const p = wallPosts.find(x => x.id === id);
+      if (!p) return;
+      if (walletBalance < p.price) {
+        showToast("⚠️ Wallet එකේ Wizard Coins මදි! Top Up කරන්න.");
+        return;
+      }
+      walletBalance -= p.price;
+      escrowOrders.unshift({
+        id: "ESC-" + Math.floor(1000 + Math.random() * 9000),
+        item: p.title,
+        shop: p.shop,
+        amount: p.price,
+        status: "LOCKED_IN_ESCROW"
+      });
+      updateBalances();
+      renderEscrow();
+      switchCustomerTab('escrow');
+      showToast(`🛡️ ${p.price} WIZ Smart Contract Escrow එකේ ආරක්ෂිතව තැන්පත් වුණා!`);
+    }
+
+    function renderEscrow() {
+      const list = document.getElementById('escrow-list');
+      list.innerHTML = "";
+      escrowOrders.forEach((o, idx) => {
+        list.innerHTML += `
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <span class="text-[10px] font-mono text-slate-400">${o.id} • ${o.shop}</span>
+              <h4 class="font-bold text-white text-sm">${o.item}</h4>
+              <p class="text-xs text-amber-400 font-bold mt-0.5">${o.amount} WIZ</p>
+            </div>
+            <div>
+              ${o.status === "LOCKED_IN_ESCROW" ? `
+                <button onclick="confirmDelivery(${idx})" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs px-4 py-2.5 rounded-xl shadow transition">
+                  ✅ භාණ්ඩය අතට ලැබුණා (Release Escrow Funds)
+                </button>
+              ` : `
+                <span class="text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-lg">
+                  ⚡ Smart Contract Split Completed (Wholesaler + Reseller + Seller + 0.5% Affiliate)
+                </span>
+              `}
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function confirmDelivery(idx) {
+      const order = escrowOrders[idx];
+      if (!order || order.status !== "LOCKED_IN_ESCROW") return;
+      order.status = "RELEASED";
+      const affiliateCut = +(order.amount * 0.005).toFixed(2);
+      const sellerCut = +(order.amount * 0.70).toFixed(2);
+      sellerEarnings += sellerCut;
+      sellerAffiliate += affiliateCut;
+      updateBalances();
+      renderEscrow();
+      showToast(`⚡ තත්පරෙන් බෙදුණා! Seller: +${sellerCut} WIZ | Wholesaler: +29.5% | Affiliate: +${affiliateCut} WIZ`);
+    }
+
+    // MAP FUNCTIONS
+    function updateMapRadius(val) {
+      document.getElementById('radius-val').innerText = val + " km";
+    }
+
+    function selectMapShop(index) {
+      selectedShopIndex = index;
+      const s = mapShops[index];
+      document.getElementById('map-shop-name').innerText = s.name;
+      document.getElementById('map-shop-dist').innerText = s.dist;
+      document.getElementById('map-shop-rating').innerText = s.rating;
+      showToast(`${s.name} තෝරාගත්තා!`);
+    }
+
+    function orderFromMapShop() {
+      const s = mapShops[selectedShopIndex];
+      if (walletBalance < s.price) {
+        showToast("⚠️ Wallet Balance මදි!");
+        return;
+      }
+      walletBalance -= s.price;
+      escrowOrders.unshift({
+        id: "ESC-" + Math.floor(1000 + Math.random() * 9000),
+        item: s.name + " Custom Order",
+        shop: s.name,
+        amount: s.price,
+        status: "LOCKED_IN_ESCROW"
+      });
+      updateBalances();
+      renderEscrow();
+      switchCustomerTab('escrow');
+      showToast(`📍 ${s.name} වෙත Escrow ඕඩර් එක යොමු කළා!`);
+    }
+
+    function runAiFinder() {
+      const cat = document.getElementById('ai-recipient').value;
+      document.getElementById('customer-search').value = cat.split(' ')[1] || "";
+      filterWall();
+      showToast(`🤖 AI Gift Finder: "${cat}" සඳහා ළඟම ඇති හොඳම නිර්මාණ තෝරා දුන්නා!`);
+    }
+
+    // SELLER DASHBOARD ACTIONS
+    function activateVipBoost() {
+      if (walletBalance < 50) {
+        showToast("⚠️ VIP Boost සඳහා 50 WIZ අවශ්‍යයි!");
+        return;
+      }
+      walletBalance -= 50;
+      document.getElementById('seller-vip-badge').classList.remove('hidden');
+      updateBalances();
+      showToast("👑 n8n + Smart Contract හරහා ඔබේ ෂොප් එක #1 VIP ලෙස Boost වුණා!");
+    }
+
+    function publishNewPost() {
+      const title = document.getElementById('new-post-title').value.trim();
+      const price = parseFloat(document.getElementById('new-post-price').value);
+      if (!title || !price) {
+        showToast("⚠️ කරුණාකර භාණ්ඩයේ නම සහ මිල ඇතුළත් කරන්න!");
+        return;
+      }
+      wallPosts.unshift({
+        id: Date.now(),
+        shop: "SweetCrumb Cakes",
+        badge: "👑 VIP Verified Seller",
+        vip: true,
+        rating: 4.98,
+        distance: "0.8 km",
+        title: title,
+        category: "Custom",
+        price: price,
+        views: "1.1K",
+        likes: 120,
+        shares: 45,
+        comments: []
+      });
+      document.getElementById('new-post-title').value = "";
+      document.getElementById('new-post-price').value = "";
+      renderWall();
+      switchMode('customer');
+      showToast("🚀 ඔබේ අලුත් භාණ්ඩය Customer Trending Wall එකේ උඩටම එකතු වුණා!");
+    }
+
+    function takeMicroLoan() {
+      if (sellerLoan > 0) {
+        showToast("ℹ️ ඔබ දැනටමත් 500 WIZ ක්ෂණික ණයක් ලබාගෙන ඇත.");
+        return;
+      }
+      sellerLoan = 500;
+      walletBalance += 500;
+      updateBalances();
+      showToast("⚡ 500 WIZ ක්ෂණික Smart Contract ණය ඔබේ Wallet එකට බැර වුණා!");
+    }
+
+    function completeCourse(badgeName) {
+      document.getElementById('seller-verified-badge').innerText = "🎓 " + badgeName;
+      showToast(`🎓 සුබ පැතුම්! n8n හරහා "${badgeName}" ඔබේ Shop එකට ස්වයංක්‍රීයව ලැබුණා!`);
+    }
+
+    function buyWholesaleStock() {
+      if (walletBalance < 100) {
+        showToast("⚠️ Wholesale අමුද්‍රව්‍ය ගැනීමට Micro-Loan එකක් ගන්න!");
+        return;
+      }
+      walletBalance -= 100;
+      updateBalances();
+      showToast("📦 Wholesaler ගෙන් 100 WIZ ක අමුද්‍රව්‍ය Smart Contract හරහා ඇණවුම් කළා!");
+    }
+
+    function copyAffiliateLink() {
+      showToast("🔗 ඔබේ 0.5% Lifetime Affiliate ලින්ක් එක Copy වුණා!");
+    }
+
+    function simulateAffiliateSale() {
+      sellerAffiliate += 2.50;
+      walletBalance += 2.50;
+      updateBalances();
+      showToast("💸 ඔබ ගෙනාපු අලුත් Seller ගේ විකුණුමකින් 0.5% (+2.50 WIZ) ක්ෂණිකව Wallet එකට ආවා!");
+    }
+
+    function topUpWallet() {
+      walletBalance += 500;
+      updateBalances();
+      showToast("💰 +500.00 WIZ (Stablecoin Pegged) ඔබේ Wallet එකට එකතු වුණා!");
+    }
+
+    // INITIALIZE
+    renderWall();
+    renderEscrow();
+    updateBalances();
+  </script>
+</body>
+</html>
